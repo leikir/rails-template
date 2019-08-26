@@ -29,6 +29,7 @@ To make this the default Rails application template on your system, create a `~/
 
 ```
 -d postgresql
+--skip-webpack-install
 -m https://raw.githubusercontent.com/leikir/rails-template/master/template.rb
 ```
 
@@ -44,6 +45,7 @@ To generate a Rails application using this template, pass the `-m` option to `ra
 ```
 rails new blog \
   -d postgresql \
+  --skip-webpack-install \
   -m https://raw.githubusercontent.com/leikir/rails-template/master/template.rb
 ```
 

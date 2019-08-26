@@ -14,12 +14,8 @@ def apply_template!
   template "example.env.tt"
   copy_file "editorconfig", ".editorconfig"
   copy_file "gitignore", ".gitignore", force: true
-  copy_file "overcommit.yml", ".overcommit.yml"
   template "ruby-version.tt", ".ruby-version", force: true
   copy_file "simplecov", ".simplecov"
-
-  copy_file "Guardfile"
-  copy_file "Procfile"
 
   apply "Rakefile.rb"
   apply "config.ru.rb"
@@ -29,7 +25,6 @@ def apply_template!
   apply "config/template.rb"
   apply "doc/template.rb"
   apply "lib/template.rb"
-  apply "test/template.rb"
 
   apply "variants/bootstrap/template.rb" if apply_bootstrap?
 
@@ -37,13 +32,11 @@ def apply_template!
   empty_directory ".git/safe"
 
   run_with_clean_bundler_env "bin/setup"
-  run_with_clean_bundler_env "bin/rails webpacker:install"
   create_initial_migration
   generate_spring_binstubs
 
   binstubs = %w[
-    annotate brakeman bundler bundler-audit guard rubocop sidekiq
-    terminal-notifier
+    annotate brakeman bundler bundler-audit rubocop
   ]
   run_with_clean_bundler_env "bundle binstubs #{binstubs.join(' ')} --force"
 
