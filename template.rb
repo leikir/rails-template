@@ -17,6 +17,11 @@ def apply_template!
   template "ruby-version.tt", ".ruby-version", force: true
   remove_file "package.json"
 
+  #rspec
+  remove_dir "test"
+  copy_file "rspec", ".rspec"
+  directory "spec"
+
   apply "Rakefile.rb"
   apply "config.ru.rb"
   apply "app/template.rb"
