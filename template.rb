@@ -15,7 +15,6 @@ def apply_template!
   copy_file "editorconfig", ".editorconfig"
   copy_file "gitignore", ".gitignore", force: true
   template "ruby-version.tt", ".ruby-version", force: true
-  copy_file "simplecov", ".simplecov"
   remove_file "package.json"
 
   apply "Rakefile.rb"
