@@ -1,3 +1,6 @@
+# List of all cops and their description/default values is available here:
+#   https://github.com/bbatsov/rubocop/blob/master/manual/cops.md
+
 require:
   - rubocop-performance
   - rubocop-rails
@@ -17,82 +20,93 @@ AllCops:
     - "bower_components/**/*"
     - "tmp/**/*"
     - "vendor/**/*"
-    - Gemfile
-    - Guardfile
     - Rakefile
 
-Layout/SpaceAroundEqualsInParameterDefault:
-  EnforcedStyle: no_space
+# ==================================== Department Bundler ==========================================
 
-Metrics/AbcSize:
-  Exclude:
-    - "test/**/*"
-
-Metrics/BlockLength:
-  Exclude:
-    - "config/**/*"
-    - "test/**/*"
-
-Metrics/ClassLength:
-  Exclude:
-    - "test/**/*"
-
-Metrics/LineLength:
-  Exclude:
-    - "config/**/*"
-    - "db/**/*"
-
-Metrics/MethodLength:
-  Max: 12
-  Exclude:
-    - "db/migrate/*"
-    - "test/**/*"
-
-Naming/MemoizedInstanceVariableName:
-  EnforcedStyleForLeadingUnderscores: optional
-
-Naming/VariableNumber:
-  Enabled: false
-
-Performance/Casecmp:
-  Enabled: false
-
-Rails:
+Bundler/OrderedGems:
   Enabled: true
 
-Rails/ApplicationRecord:
+# ===================================== Department Layout ==========================================
+
+Layout/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/DotPosition:
+  EnforcedStyle: trailing
+
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: no_empty_lines
+  SupportedStyles:
+    - empty_lines
+    - no_empty_lines
+
+Layout/EmptyLinesAroundModuleBody:
+  EnforcedStyle: no_empty_lines
+  SupportedStyles:
+    - empty_lines
+    - no_empty_lines
+
+Layout/EmptyLinesAroundBlockBody:
+  Description: "Keeps track of empty lines around block bodies."
+  Enabled: false
+
+Layout/EmptyLines:
+  Description: "Don't use several empty lines in a row."
+  Enabled: true
+
+Layout/EndOfLine:
+  Description: 'Use Unix-style line endings.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#crlf'
+  Enabled: true
+
+Layout/ExtraSpacing:
+  # When true, allows most uses of extra spacing if the intent is to align
+  # things with the previous or next line, not counting empty lines or comment
+  # lines.
+  AllowForAlignment: true
+
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+# ==================================== Department Metrics ==========================================
+
+Metrics/AbcSize:
+  Max: 15 # Default is 15
+
+Metrics/LineLength:
+  Max: 100 # Default is 80
   Exclude:
-    - "db/migrate/**"
+    - config/schedule.rb
 
-Rails/RefuteMethods:
-  Enabled: false
+Metrics/MethodLength:
+  Max: 25 # Default is 10
 
-Rails/Validation:
-  Enabled: false
+Metrics/ParameterLists:
+  Max: 5 # Default is 5
 
-Style/BarePercentLiterals:
-  EnforcedStyle: percent_q
-
-Style/ClassAndModuleChildren:
-  Enabled: false
-
-Style/Documentation:
-  Enabled: false
-
-Style/DoubleNegation:
-  Enabled: false
-
-Style/EmptyMethod:
-  Enabled: false
+# ===================================== Department Style ===========================================
 
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-Style/NumericPredicate:
-  Enabled: false
+Style/GlobalVars:
+  Description: 'Do not introduce global variables.'
+  StyleGuide: '#instance-vars'
+  Reference: 'http://www.zenspider.com/Languages/Ruby/QuickRef.html'
+  AllowedVariables:
+    - $rollout
+    - $redis
+    - $redis_cache
+    - $redis_rollout
+  Enabled: true
 
 Style/StringLiterals:
-  EnforcedStyle: double_quotes
+  EnforcedStyle: single_quotes
 
-Style/TrivialAccessors:
-  AllowPredicates: true
