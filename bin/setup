@@ -6,16 +6,13 @@ def setup!
     run  "gem install bundler --no-document --conservative"
     run  "bundle install"
     run  "bin/yarn install" if File.exist?("yarn.lock")
-    copy "example.env"
     copy "config/database.example.yml"
-    test_local_env_contains_required_keys
     run  "bin/rake tmp:create"
     run  "bin/rake db:create:all"
     run  "bin/rake db:migrate"
     run  "bin/rake db:seed"
   end
 end
-
 
 require "fileutils"
 begin
@@ -64,17 +61,6 @@ def copy(example_path)
 
   log(:magenta, "copy #{example_path} → #{copy_path}") do
     FileUtils.cp(example_path, copy_path)
-  end
-end
-
-def test_local_env_contains_required_keys
-  keys = ->(f) { IO.readlines(f).map { |l| l[/^([^#\s][^=\s]*)/, 1] }.compact }
-
-  log(:yellow, "test .env contents") do
-    missing = keys["example.env"] - keys[".env"]
-    if missing.any?
-      die("Your .env file is missing #{missing.join(', ')}")
-    end
   end
 end
 

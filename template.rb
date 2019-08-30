@@ -11,21 +11,19 @@ def apply_template!
   template 'README.md.tt', force: true
   remove_file 'README.rdoc'
 
-  template 'example.env.tt'
   copy_file 'editorconfig', '.editorconfig'
   copy_file 'gitignore', '.gitignore', force: true
   template 'ruby-version.tt', '.ruby-version', force: true
   remove_file 'package.json'
 
-  #rspec
+  # Rspec
   remove_dir 'test'
   copy_file 'rspec', '.rspec'
   directory 'spec'
 
   apply 'Rakefile.rb'
-  apply 'config.ru.rb'
 
-  apply 'app/template_api_only.rb' unless api_only?
+  apply 'app/template.rb' unless api_only?
 
   apply 'bin/template.rb'
   apply 'circleci/template.rb'
@@ -33,12 +31,18 @@ def apply_template!
   apply 'doc/template.rb'
   apply 'lib/template.rb'
 
+  # Docker
+  template 'Dockerfile.dev', 'Dockerfile'
+  copy_file 'docker-entrypoint.sh'
+  copy_file 'docker-compose.yml'
+  copy_file 'env.example', '.env.example'
+
   # apply "variants/bootstrap/template.rb" if apply_bootstrap?
 
   git :init unless preexisting_git_repo?
   empty_directory '.git/safe'
 
-  run_with_clean_bundler_env "bin/setup"
+  run_with_clean_bundler_env 'bin/setup'
   create_initial_migration
   generate_spring_binstubs
 
