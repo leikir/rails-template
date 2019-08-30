@@ -24,7 +24,9 @@ def apply_template!
 
   apply 'Rakefile.rb'
   apply 'config.ru.rb'
-  apply 'app/template.rb'
+
+  apply 'app/template_api_only.rb' unless api_only?
+
   apply 'bin/template.rb'
   apply 'circleci/template.rb'
   apply 'config/template.rb'
@@ -34,7 +36,7 @@ def apply_template!
   # apply "variants/bootstrap/template.rb" if apply_bootstrap?
 
   git :init unless preexisting_git_repo?
-  empty_directory ".git/safe"
+  empty_directory '.git/safe'
 
   run_with_clean_bundler_env "bin/setup"
   create_initial_migration
@@ -183,6 +185,10 @@ def create_initial_migration
 
   run_with_clean_bundler_env 'bin/rails generate migration initial_migration'
   run_with_clean_bundler_env 'bin/rake db:migrate'
+end
+
+def api_only?
+  !!options['api']
 end
 
 apply_template!
