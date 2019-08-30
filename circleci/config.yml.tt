@@ -1,83 +1,149 @@
-# Ruby CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-ruby/ for more details
-#
 version: 2
+defaults: &defaults
+  working_directory: ~/app/
+  docker:
+    - image: circleci/ruby:<%= RUBY_VERSION %>
+      environment:
+        BUNDLE_JOBS: 3
+        BUNDLE_RETRY: 3
+        BUNDLE_PATH: vendor/bundle
+        RAILS_ENV: test
+        DATABASE_URL: postgres://circleci-app@localhost:5432/app
+    - image: circleci/postgres:10.4-alpine
+      environment:
+        POSTGRES_USER: circleci-app
+        POSTGRES_DB: app
+        POSTGRES_PASSWORD: ""
+
 jobs:
-  build:
-    docker:
-      - image: circleci/ruby:<%= RUBY_VERSION %>-node-browsers
-        environment:
-          PGHOST: 127.0.0.1
-          PGUSER: postgres
-          RAILS_ENV: test
-      - image: circleci/postgres:10.5-alpine
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ""
-
-    working_directory: ~/repo
-
+  test:
+    <<: *defaults
     steps:
       - checkout
 
-      # Download and cache dependencies
+      - run:
+          name: Install nodejs
+          command: sudo apt-get install nodejs
+
+      # Which version of bundler?
+      - run:
+          name: Which bundler?
+          command: bundle -v
+          working_directory: ~/app
+
+      # Restore bundle cache
       - restore_cache:
           keys:
-            - v1-dependencies-{{ arch }}-{{ checksum "Gemfile.lock" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-{{ arch }}-
+            - app-bundle-{{ checksum "Gemfile.lock" }}
+            - app-bundle-
 
+      - run:
+          name: Bundle Install
+          command: bundle check || bundle install
+          working_directory: ~/app
+
+      # Store bundle cache
+      - save_cache:
+          key: app-bundle-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run:
+          name: Database setup
+          command: bin/rails db:schema:load --trace
+          working_directory: ~/app
+
+      # - run:
+      #     name: Setup Code Climate test-reporter
+      #     command: |
+      #       curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+      #       chmod +x ./cc-test-reporter
+      # Run rspec in parallel
+      - run:
+          working_directory: ~/app
+          name: Run backend tests
+          command: |
+            bundle exec rspec --profile 10 \
+                              --format RspecJunitFormatter \
+                              --out test_results/rspec.xml \
+                              --format progress \
+                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+      # - run:
+      #     name: Format and upload coverage result to Code Climate
+      #     command: |
+      #       ./cc-test-reporter format-coverage -t simplecov -o coverage/codeclimate.json
+      #       ./cc-test-reporter upload-coverage
+      # Save test results for timing analysis
+      - store_test_results:
+          path: test_results
+  build:
+    working_directory: ~/app/
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.05.0-ce
       - run:
           name: Install dependencies
           command: |
-            bundle install --deployment --jobs=4 --retry=3 --path vendor/bundle
-            bundle clean
-
-      - save_cache:
+            apk add --no-cache \
+              py-pip=9.0.0-r1
+            pip install \
+              docker-compose==1.12.0 \
+              awscli
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}
           paths:
-            - ./vendor/bundle
-          key: v1-dependencies-{{ arch }}-{{ checksum "Gemfile.lock" }}
-
+            - /caches/app.tar
       - run:
-          name: Run security audits
+          name: Load Docker image layer cache
           command: |
-            bundle exec brakeman -q --no-summary
-            bundle exec bundle-audit check --update -v
-
+            set +o pipefail
+            docker load -i /caches/app.tar | true
       - run:
-          name: Set up database
+          name: Build application Docker image
           command: |
-            cp config/database.example.yml config/database.yml
-            cp example.env .env
-            bundle exec rake db:setup
-
+            docker build --build-arg rails_master_key=$RAILS_MASTER_KEY --cache-from=app -t app -f Dockerfile.release .
       - run:
-          name: Run tests
+          name: Save Docker image layer cache
           command: |
-            bundle exec rake webdrivers:chromedriver:update
-            bundle exec rake test test:system TESTOPTS="--ci-dir=./reports"
-
-      - store_test_results:
-          path: ./reports
-
-      - store_artifacts:
-          path: ./tmp/screenshots
-          destination: screenshots
+            mkdir -p /caches
+            docker save -o /caches/app.tar app
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /caches/app.tar
+      - deploy:
+          name: Push application Docker image
+          command: |
+              eval $(aws ecr get-login --no-include-email)
+              export LOCAL_IMAGE_NAME=app
+              export ECS_IMAGE_NAME=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECS_REPOSITORY_NAME
+              export CIRCLE_BRANCH_OR_TAG=$(echo $CIRCLE_BRANCH$CIRCLE_TAG | sed 's#/#_#g')
+              docker tag $LOCAL_IMAGE_NAME $ECS_IMAGE_NAME:$CIRCLE_SHA1
+              docker tag $LOCAL_IMAGE_NAME $ECS_IMAGE_NAME:$CIRCLE_BRANCH_OR_TAG
+              docker push $ECS_IMAGE_NAME:$CIRCLE_SHA1
+              docker push $ECS_IMAGE_NAME:$CIRCLE_BRANCH_OR_TAG
 
 workflows:
   version: 2
-  commit-workflow:
+
+  commit:
     jobs:
-      - build
-  cron-workflow:
-    triggers:
-      - schedule:
-          cron: "0 13 * * 1,2,3,4,5"
+      - test
+      - build:
+          context: AWS
+          requires:
+            - test
           filters:
             branches:
               only:
                 - master
-                - development
-    jobs:
-      - build
+                - develop
+                - /build\/.*/
