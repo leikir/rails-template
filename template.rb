@@ -33,6 +33,7 @@ def apply_template!
 
   # Docker
   template 'Dockerfile.dev', 'Dockerfile'
+  template 'Dockerfile.release.tt', 'Dockerfile.release'
   copy_file 'docker-entrypoint.sh'
   copy_file 'docker-compose.yml'
   copy_file 'env.example', '.env.example'

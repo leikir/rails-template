@@ -1,0 +1,68 @@
+FROM ruby:<%= RUBY_VERSION %>-slim
+
+MAINTAINER Leikir Web "web@leikir.io"
+
+ENV INSTALL_PATH /app
+ENV RAILS_ENV production
+ENV RACK_ENV production
+
+ARG rails_master_key=default_value
+ENV RAILS_MASTER_KEY=$rails_master_key
+
+# Install apt based dependencies required to run Rails as
+# well as RubyGems. As the Ruby image itself is based on a
+# Debian image, we use apt-get to install those.
+RUN apt-get update \
+  && apt-get install -qq -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    git-core \
+    nodejs \
+    netcat \
+  \
+  # We need bundler
+  && gem install bundler --no-document \
+  \
+  && mkdir -p $INSTALL_PATH
+
+# Configure the main working directory. This is the base
+# directory used in any further RUN, COPY, and ENTRYPOINT
+# commands.
+WORKDIR $INSTALL_PATH
+
+# Copy the Gemfile as well as the Gemfile.lock and install
+# the RubyGems. This is a separate step so the dependencies
+# will be cached unless changes to one of those two files
+# are made.
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --without development test --jobs 20 --retry 5
+
+# Copy the main application.
+COPY . .
+<%- unless api_only? %>
+# Precompile Rails assets
+RUN env
+RUN bundle exec rake DATABASE_URL=nulldb://null assets:precompile
+RUN rm -rf app/assets lib/assets vendor/assets tmp
+<%- end %>
+
+# Expose port 3000 to the Docker host, so we can access it
+# from the outside.
+EXPOSE 3000
+
+# An entrypoint to run migrations and so on
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+# Create a user with limited rights to run the app
+RUN groupadd -g 2000 appuser \
+  && useradd -ms /bin/bash -u 2001 -g appuser appuser
+# Give right to write on tmp
+RUN mkdir tmp && chown appuser tmp
+USER appuser
+
+# The main command to run when the container starts. Also
+# tell the Rails dev server to bind to all interfaces by
+# default.
+CMD ["bundle exec rails server -p 3000 -b 0.0.0.0"]
