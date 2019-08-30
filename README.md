@@ -1,15 +1,4 @@
-# mattbrictson/rails-template
-
-## Description
-
-This is the application template that I use for my Rails 6 projects. As a freelance Rails developer, I need to be able to start new projects quickly and with a good set of defaults. I've assembled this template over the years to include best-practices, tweaks, documentation, and personal preferences, while still generally adhering to the "Rails way".
-
-For older versions of Rails, use these branches:
-
-* [Rails 4.2.x](https://github.com/mattbrictson/rails-template/tree/rails-42)
-* [Rails 5.0.x](https://github.com/mattbrictson/rails-template/tree/rails-50)
-* [Rails 5.1.x](https://github.com/mattbrictson/rails-template/tree/rails-51)
-* [Rails 5.2.x](https://github.com/mattbrictson/rails-template/tree/rails-52)
+# leikir/rails-template
 
 ## Requirements
 
@@ -17,21 +6,7 @@ This template currently works with:
 
 * Rails 6.0.x
 * PostgreSQL
-* chromedriver
-
-If you need help setting up a Ruby development environment, check out my [Rails OS X Setup Guide](https://mattbrictson.com/rails-osx-setup-guide).
-
-## Installation
-
-*Optional.*
-
-To make this the default Rails application template on your system, create a `~/.railsrc` file with these contents:
-
-```
--d postgresql
---skip-webpack-install
--m https://raw.githubusercontent.com/leikir/rails-template/master/template.rb
-```
+* Yarn
 
 ## Usage
 
@@ -42,6 +17,7 @@ This template assumes you will store your project in a remote git repository (e.
 
 To generate a Rails application using this template, pass the `-m` option to `rails new`, like this:
 
+# For a standalone Rails app
 ```
 rails new blog \
   -d postgresql \
@@ -49,6 +25,7 @@ rails new blog \
   -m https://raw.githubusercontent.com/leikir/rails-template/master/template.rb
 ```
 
+# For a Rails API (with/without React)
 ```
 rails new blog \
   -d postgresql \
@@ -58,12 +35,6 @@ rails new blog \
 
 *Remember that options must go after the name of the application.* The only database supported by this template is `postgresql`.
 
-If you’ve installed this template as your default (using `~/.railsrc` as described above), then all you have to do is run:
-
-```
-rails new blog
-```
-
 ## What does it do?
 
 The template will perform the following steps:
@@ -71,49 +42,25 @@ The template will perform the following steps:
 1. Generate your application files and directories
 2. Ensure bundler is installed
 3. Create the development and test databases
-4. Commit everything to git
-5. Push the project to the remote git repository you specified
+4. Install a bunch of extensions
 
 ## What is included?
 
 #### These gems are added to the standard Rails stack
 
 * Core
-    * [active_type][] – for building simple and effective form/service objects
     * [sidekiq][] – Redis-based job queue implementation for Active Job
-* Configuration
-    * [dotenv][] – in place of the Rails `secrets.yml`
+    * [Rollbar][] – Error monitoring
 * Utilities
     * [annotate][] – auto-generates schema documentation
-    * [autoprefixer-rails][] – automates cross-browser CSS compatibility
     * [awesome_print][] – try `ap` instead of `puts`
     * [better_errors][] – useful error pages with interactive stack traces
-    * [guard][] – runs tests as you develop; mandatory for effective TDD
-    * [livereload][] – magically refreshes browsers whenever you save a file
     * [rubocop][] – enforces Ruby code style
-    * [xray-rails][] – inspect view partials in the browser
 * Security
     * [brakeman][] and [bundler-audit][] – detect security vulnerabilities
 * Testing
     * [simplecov][] – code coverage reports
-    * [shoulda][] – shortcuts for common ActiveRecord tests
-
-#### Postmark
-
-I like to use [Postmark][] for transactional email, and so I've included the [postmark-rails][] gem and configured it in `environments/production.rb`. Make sure to sign up for a Postmark account to get an API key, or switch to your own preferred email provider before deploying your app.
-
-#### Bootstrap integration (optional)
-
-[Bootstrap][]-related features are opt-in. To apply these to your project, answer "yes" when prompted.
-
-* Bootstrap-themed scaffold templates
-* Application layout that includes Bootstrap-style navbar and boilerplate
-* View helpers for generating common Bootstrap markup
-
-#### Other tweaks that patch over some Rails shortcomings
-
-* A much-improved `bin/setup` script
-* Log rotation so that development and test Rails logs don’t grow out of control
+    * [rspec][] – Framework for tests
 
 ## How does it work?
 
