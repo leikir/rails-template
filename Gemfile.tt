@@ -19,6 +19,8 @@ gem 'slim-rails'
 gem 'rack-cors'
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails'
+# Background jobs
+gem 'sidekiq'
 
 group :development, :test do
   gem 'awesome_print'

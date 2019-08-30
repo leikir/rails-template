@@ -12,16 +12,22 @@ services:
     ports:
       - 1080:1080
 
+  redis:
+    image: redis:latest
+    restart: always
+
   rails:
     stdin_open: true
     tty: true
     depends_on:
       - postgres
+      - redis
     build: .
     env_file:
       - .env
     environment: &RAILS_ENV
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/1
       MAILCATCHER_SMTP_ADDRESS: mailcatcher
       MAILCATCHER_SMTP_PORT: 1025
     volumes:
@@ -29,3 +35,15 @@ services:
       - ./:/app
     ports:
       - 3000:3000
+
+  sidekiq:
+    depends_on:
+      - postgres
+      - redis
+      - rails
+    build: .
+    command: bundle exec sidekiq
+    env_file:
+      - .env
+    environment:
+      <<: *RAILS_ENV
