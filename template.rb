@@ -54,14 +54,14 @@ def apply_template!
   template 'rubocop.yml.tt', '.rubocop.yml'
   run_rubocop_autocorrections
 
-  unless any_local_git_commits?
-    git add: '-A .'
-    git commit: "-n -m 'Set up project'"
-    if git_repo_specified?
-      git remote: "add origin #{git_repo_url.shellescape}"
-      git push: '-u origin --all'
-    end
-  end
+  # unless any_local_git_commits?
+  #   git add: '-A .'
+  #   git commit: "-n -m 'Set up project'"
+  #   if git_repo_specified?
+  #     git remote: "add origin #{git_repo_url.shellescape}"
+  #     git push: '-u origin --all'
+  #   end
+  # end
 end
 
 require 'fileutils'
