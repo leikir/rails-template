@@ -17,7 +17,7 @@ This template assumes you will store your project in a remote git repository (e.
 
 To generate a Rails application using this template, pass the `-m` option to `rails new`, like this:
 
-# For a standalone Rails app
+### For a standalone Rails app
 ```
 rails new blog \
   -d postgresql \
@@ -25,7 +25,7 @@ rails new blog \
   -m https://raw.githubusercontent.com/leikir/rails-template/master/template.rb
 ```
 
-# For a Rails API (with/without React)
+### For a Rails API (with/without React)
 ```
 rails new blog \
   -d postgresql \
