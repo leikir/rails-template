@@ -7,6 +7,11 @@ services:
     env_file:
       - .env
 
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - 1080:1080
+
   rails:
     stdin_open: true
     tty: true
@@ -16,7 +21,9 @@ services:
     env_file:
       - .env
     environment: &RAILS_ENV
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}      
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      MAILCATCHER_SMTP_ADDRESS: mailcatcher
+      MAILCATCHER_SMTP_PORT: 1025
     volumes:
       - ./data/rails/uploads:/app/public/uploads
       - ./:/app
