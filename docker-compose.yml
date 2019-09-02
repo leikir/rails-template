@@ -35,6 +35,15 @@ services:
       - ./:/app
     ports:
       - 3000:3000
+  caddy:
+    image: abiosoft/caddy:latest
+    volumes:
+      - ./Caddyfile:/etc/Caddyfile
+      - ./data/caddy:/root/.caddy
+    ports:
+      - 443:443
+    depends_on:
+      - rails
 
   sidekiq:
     depends_on:

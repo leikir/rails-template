@@ -1,0 +1,14 @@
+https://<%= app_name %>.dev.leikir.io {
+
+  root /rails/public
+
+  proxy / rails:3000 {
+    except /assets /robots.txt
+    transparent
+  }
+
+  gzip
+  
+  tls self_signed
+
+}
