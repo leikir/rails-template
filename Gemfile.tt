@@ -21,6 +21,8 @@ gem 'rack-cors'
 gem 'coffee-rails'
 # Background jobs
 gem 'sidekiq'
+# auth
+gem 'devise'
 
 group :development, :test do
   gem 'awesome_print'

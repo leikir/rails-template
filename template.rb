@@ -23,7 +23,7 @@ def apply_template!
 
   apply 'Rakefile.rb'
 
-  apply 'app/template.rb' unless api_only?
+  apply 'app/template.rb'
 
   apply 'bin/template.rb'
   apply 'circleci/template.rb'
@@ -40,6 +40,7 @@ def apply_template!
   copy_file 'docker-entrypoint.sh'
   copy_file 'docker-compose.yml'
   copy_file 'env.example', '.env.example'
+  copy_file 'db/seeds.rb', force: true
 
   # apply "variants/bootstrap/template.rb" if apply_bootstrap?
 
@@ -48,6 +49,7 @@ def apply_template!
 
   run_with_clean_bundler_env 'bin/setup'
   create_initial_migration
+  install_devise
   generate_spring_binstubs
 
   binstubs = %w[
@@ -193,6 +195,14 @@ def create_initial_migration
 
   run_with_clean_bundler_env 'bin/rails generate migration initial_migration'
   run_with_clean_bundler_env 'bin/rake db:migrate'
+end
+
+def install_devise
+  run_with_clean_bundler_env 'bin/rails generate devise:install'
+  run_with_clean_bundler_env 'bin/rails generate devise User'
+  rails_command 'db:migrate'
+  run_with_clean_bundler_env 'bin/rails generate devise:views' unless api_only?
+  apply 'config/initializers/devise.rb'
 end
 
 def api_only?
