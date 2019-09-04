@@ -31,6 +31,9 @@ def apply_template!
   apply 'doc/template.rb'
   apply 'lib/template.rb'
 
+  # Caddy
+  template 'Caddyfile.tt', force: true
+
   # Docker
   template 'Dockerfile.dev', 'Dockerfile'
   template 'Dockerfile.release.tt', 'Dockerfile.release'
@@ -124,7 +127,7 @@ def assert_postgresql
 
   fail Rails::Generators::Error,
        'This template requires PostgreSQL, '\
-       'but the pg gem isn’t present in your Gemfile.'
+       'but the pg gem is not present in your Gemfile.'
 end
 
 def git_repo_url

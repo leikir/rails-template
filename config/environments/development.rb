@@ -1,7 +1,7 @@
 mailer_regex = /config\.action_mailer\.raise_delivery_errors = false\n/
 
-comment_lines "config/environments/development.rb", mailer_regex
-insert_into_file "config/environments/development.rb", after: mailer_regex do
+comment_lines 'config/environments/development.rb', mailer_regex
+insert_into_file 'config/environments/development.rb', after: mailer_regex do
   <<-RUBY
 
   # Ensure mailer works in development.
@@ -14,6 +14,16 @@ insert_into_file "config/environments/development.rb", after: mailer_regex do
   RUBY
 end
 
-gsub_file "config/environments/development.rb",
-          "join('tmp/caching-dev.txt')",
+insert_into_file 'config/environments/development.rb', after: "do\n" do
+  <<-RUBY
+  routes.default_url_options[:protocol] = 'https'
+
+  # disable rails 6 feature that blocks requests from unauthorized hosts
+  config.hosts = nil
+
+  RUBY
+end
+
+gsub_file 'config/environments/development.rb',
+          'join("tmp/caching-dev.txt")',
           'join("tmp", "caching-dev.txt")'
