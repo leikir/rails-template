@@ -23,6 +23,8 @@ gem 'coffee-rails'
 gem 'sidekiq'
 # auth
 gem 'devise'
+# email validation
+gem 'email_address'
 
 group :development, :test do
   gem 'awesome_print'
