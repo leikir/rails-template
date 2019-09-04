@@ -50,6 +50,7 @@ def apply_template!
   run_with_clean_bundler_env 'bin/setup'
   create_initial_migration
   install_devise
+  install_cancancan if @cancancan
   generate_spring_binstubs
 
   binstubs = %w[
@@ -203,6 +204,15 @@ def install_devise
   rails_command 'db:migrate'
   run_with_clean_bundler_env 'bin/rails generate devise:views' unless api_only?
   apply 'config/initializers/devise.rb'
+end
+
+def cancancan
+  @cancancan ||=
+    yes?('Add CanCanCan to the Gemfile ? (default: no)')
+end
+
+def install_cancancan
+  run_with_clean_bundler_env 'bin/rails generate cancan:ability'
 end
 
 def api_only?
