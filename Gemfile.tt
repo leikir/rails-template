@@ -21,6 +21,14 @@ gem 'rack-cors'
 gem 'coffee-rails'
 # Background jobs
 gem 'sidekiq'
+# auth
+gem 'devise'
+<% if cancancan -%>
+# permissions
+gem 'cancancan'
+<% end -%>
+# email validation
+gem 'email_address'
 
 group :development, :test do
   gem 'awesome_print'
@@ -40,6 +48,10 @@ group :development do
   gem 'better_errors'
   gem 'brakeman', require: false
   gem 'bundler-audit', '>= 0.5.0', require: false
+  <% if !api_only? -%>
+  # convert views to slim
+  gem 'html2slim'
+  <% end -%>
   gem 'web-console', '>= 3.3.0'
 end
 

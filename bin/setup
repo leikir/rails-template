@@ -10,7 +10,6 @@ def setup!
     run  "bin/rake tmp:create"
     run  "bin/rake db:create:all"
     run  "bin/rake db:migrate"
-    run  "bin/rake db:seed"
   end
 end
 
