@@ -23,6 +23,10 @@ gem 'coffee-rails'
 gem 'sidekiq'
 # auth
 gem 'devise'
+<% if cancancan -%>
+# permissions
+gem 'cancancan'
+<% end -%>
 # email validation
 gem 'email_address'
 
