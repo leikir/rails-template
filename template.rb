@@ -202,7 +202,10 @@ def install_devise
   run_with_clean_bundler_env 'bin/rails generate devise:install'
   run_with_clean_bundler_env 'bin/rails generate devise User'
   rails_command 'db:migrate'
-  run_with_clean_bundler_env 'bin/rails generate devise:views' unless api_only?
+  unless api_only?
+    run_with_clean_bundler_env 'bin/rails generate devise:views'
+    run 'erb2slim ./app/views/devise -d'
+  end
   apply 'config/initializers/devise.rb'
 end
 
