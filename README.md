@@ -30,6 +30,7 @@ rails new blog \
 rails new blog \
   -d postgresql \
   --api \
+  --skip-bundle \
   -m https://raw.githubusercontent.com/leikir/rails-template/master/template.rb
 ```
 
