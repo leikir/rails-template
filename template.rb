@@ -60,6 +60,7 @@ def apply_template!
     template 'Caddyfile.tt', force: true
 
     # Docker
+    template 'base.Dockerfile.tt', 'base.Dockerfile'
     template 'Dockerfile.dev', 'Dockerfile'
     template 'Dockerfile.release.tt', 'Dockerfile.release'
     copy_file 'docker-entrypoint.sh'
@@ -89,6 +90,7 @@ def apply_react!
   template 'Caddyfile.tt', force: true
 
   # Docker
+  template 'base.Dockerfile.tt', 'rails/base.Dockerfile'
   template 'Dockerfile.dev', 'rails/Dockerfile'
   copy_file 'docker-entrypoint.sh', 'rails/docker-entrypoint.sh'
   copy_file 'Dockerfile.react.dev', 'react/Dockerfile'
