@@ -23,7 +23,8 @@ def apply_template!
 
   apply 'Rakefile.rb'
 
-  apply 'app/template.rb'# unless api_only?
+  apply 'app/template.rb' unless api_only?
+  directory("app/assets/", "app/assets/") if api_only?
 
   apply 'bin/template.rb'
   apply 'circleci/template.rb'
