@@ -93,8 +93,7 @@ end
 def apply_react!
   empty_directory 'rails'
   run "mv `\ls -1 | grep -v -E 'rails'` rails/"
-  run 'mv {*,.[^.]*,..?*} rails/'
-
+  run 'mv .* rails/ || :'
   run "npx create-react-app #{@app_name}"
   run "mv #{@app_name} react"
 
