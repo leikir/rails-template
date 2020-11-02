@@ -32,7 +32,7 @@ def apply_template!
   apply 'lib/template.rb'
 
   # Assets
-  directory 'assets'
+  directory 'app/assets'
 
   # Caddy
   template 'Caddyfile.tt', force: true
