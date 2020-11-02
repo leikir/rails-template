@@ -23,16 +23,13 @@ def apply_template!
 
   apply 'Rakefile.rb'
 
-  apply 'app/template.rb' unless api_only?
+  apply 'app/template.rb'# unless api_only?
 
   apply 'bin/template.rb'
   apply 'circleci/template.rb'
   apply 'config/template.rb'
   apply 'doc/template.rb'
   apply 'lib/template.rb'
-
-  # Assets
-  directory 'app/assets'
 
   # Caddy
   template 'Caddyfile.tt', force: true
