@@ -23,6 +23,18 @@ If you need help setting up a Ruby development environment, check out this [Rail
 
 ## Getting started
 
+### with docker
+
+* On your rails folder :
+
+docker build -f base.Dockerfile -t <%= app_name %>base .
+
+cp .env.example .env
+
+* On the project's root folder :
+
+docker-compose up
+
 ### bin/setup
 
 Run the `bin/setup` script. This script will:

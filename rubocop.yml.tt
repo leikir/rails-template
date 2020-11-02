@@ -6,21 +6,13 @@ require:
   - rubocop-rails
 
 AllCops:
-  DisplayCopNames: true
-  DisplayStyleGuide: true
   TargetRubyVersion: <%= RUBY_VERSION[/\d+\.\d+/] %>
   Exclude:
-    - "bin/*"
-    - Capfile
-    - config/boot.rb
-    - config/environment.rb
-    - config/initializers/version.rb
-    - db/schema.rb
-    - "node_modules/**/*"
-    - "bower_components/**/*"
-    - "tmp/**/*"
-    - "vendor/**/*"
-    - Rakefile
+    - 'vendor/**/*'
+    - 'spec/fixtures/**/*'
+    - 'tmp/**/*'
+    - 'db/**/*'
+    - 'app/views/**/*'
 
 # ==================================== Department Bundler ==========================================
 
@@ -29,84 +21,101 @@ Bundler/OrderedGems:
 
 # ===================================== Department Layout ==========================================
 
+Layout/AlignArguments:
+  EnforcedStyle: with_fixed_indentation
+
 Layout/AlignParameters:
   EnforcedStyle: with_fixed_indentation
+
+Layout/EmptyLinesAroundClassBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: false
+
+Layout/IndentHeredoc:
+  EnforcedStyle: powerpack
 
 Layout/CaseIndentation:
   EnforcedStyle: end
 
-Layout/DotPosition:
-  EnforcedStyle: trailing
-
-Layout/EmptyLinesAroundClassBody:
-  EnforcedStyle: no_empty_lines
-  SupportedStyles:
-    - empty_lines
-    - no_empty_lines
-
-Layout/EmptyLinesAroundModuleBody:
-  EnforcedStyle: no_empty_lines
-  SupportedStyles:
-    - empty_lines
-    - no_empty_lines
-
-Layout/EmptyLinesAroundBlockBody:
-  Description: "Keeps track of empty lines around block bodies."
+Layout/IndentationWidth:
   Enabled: false
 
-Layout/EmptyLines:
-  Description: "Don't use several empty lines in a row."
-  Enabled: true
+Layout/ElseAlignment:
+  Enabled: false
 
-Layout/EndOfLine:
-  Description: 'Use Unix-style line endings.'
-  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#crlf'
-  Enabled: true
-
-Layout/ExtraSpacing:
-  # When true, allows most uses of extra spacing if the intent is to align
-  # things with the previous or next line, not counting empty lines or comment
-  # lines.
-  AllowForAlignment: true
-
-Layout/MultilineOperationIndentation:
-  EnforcedStyle: indented
+Layout/EndAlignment:
+  Enabled: false
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 
-# ==================================== Department Metrics ==========================================
-
-Metrics/AbcSize:
-  Max: 15 # Default is 15
-
-Metrics/LineLength:
-  Max: 100 # Default is 80
-  Exclude:
-    - config/schedule.rb
-
-Metrics/MethodLength:
-  Max: 25 # Default is 10
-
-Metrics/ParameterLists:
-  Max: 5 # Default is 5
-
 # ===================================== Department Style ===========================================
 
-Style/FrozenStringLiteralComment:
+Style/ClassAndModuleChildren:
   Enabled: false
 
-Style/GlobalVars:
-  Description: 'Do not introduce global variables.'
-  StyleGuide: '#instance-vars'
-  Reference: 'http://www.zenspider.com/Languages/Ruby/QuickRef.html'
-  AllowedVariables:
-    - $rollout
-    - $redis
-    - $redis_cache
-    - $redis_rollout
-  Enabled: true
+Style/EmptyMethod:
+  Enabled: false
 
-Style/StringLiterals:
-  EnforcedStyle: single_quotes
 
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: never
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%w': []
+    '%W': []
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Style/ConditionalAssignment:
+  Enabled: false
+
+# ==================================== Department Metrics ==========================================
+
+Metrics/BlockLength:
+  CountComments: false
+  Exclude:
+    - 'Rakefile'
+    - '**/*.rake'
+    - 'spec/**/*.rb'
+    - 'app/admin/*.rb' # active_admin
+
+Metrics/ModuleLength:
+  Exclude:
+    - 'spec/**/*.rb'
+
+Metrics/AbcSize:
+  # The ABC size is a calculated magnitude, so this number can be an Integer or
+  # a Float.
+  Max: 25
+
+Metrics/LineLength:
+  Max: 100
+  # To make it possible to copy or click on URIs in the code, we allow lines
+  # containing a URI to be longer than Max.
+  AllowHeredoc: true
+  AllowURI: true
+  URISchemes:
+    - http
+    - https
+  # The IgnoreCopDirectives option causes the LineLength rule to ignore cop
+  # directives like '# rubocop: enable ...' when calculating a line's length.
+  IgnoreCopDirectives: false
+  # The IgnoredPatterns option is a list of !ruby/regexp and/or string
+  # elements. Strings will be converted to Regexp objects. A line that matches
+  # any regular expression listed in this option will be ignored by LineLength.
+  IgnoredPatterns: []
+
+Metrics/MethodLength:
+  CountComments: false
+  Max: 25
+
+Metrics/PerceivedComplexity:
+  Max: 15
+
+Documentation:
+  Enabled: false

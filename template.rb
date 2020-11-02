@@ -1,6 +1,11 @@
+require 'fileutils'
+require 'shellwords'
+
 RAILS_REQUIREMENT = '~> 6.0.0'.freeze
 
 def apply_template!
+  react if api_only?
+
   assert_minimum_rails_version
   assert_valid_options
   assert_postgresql
@@ -49,6 +54,8 @@ def apply_template!
 
   run_with_clean_bundler_env 'bin/setup'
   create_initial_migration
+  install_devise
+  install_cancancan if @cancancan
   generate_spring_binstubs
 
   binstubs = %w[
@@ -58,6 +65,20 @@ def apply_template!
 
   template 'rubocop.yml.tt', '.rubocop.yml'
   run_rubocop_autocorrections
+
+  unless react
+    # Caddy
+    template 'Caddyfile.tt', force: true
+
+    # Docker
+    template 'base.Dockerfile.tt', 'base.Dockerfile'
+    template 'Dockerfile.dev', 'Dockerfile'
+    template 'Dockerfile.release.tt', 'Dockerfile.release'
+    copy_file 'docker-entrypoint.sh'
+    copy_file 'docker-compose.yml'
+    copy_file 'env.example', '.env.example'
+    copy_file 'db/seeds.rb', force: true
+  end
 
   # unless any_local_git_commits?
   #   git add: '-A .'
@@ -69,8 +90,26 @@ def apply_template!
   # end
 end
 
-require 'fileutils'
-require 'shellwords'
+def apply_react!
+  empty_directory 'rails'
+  run "mv `\ls -1 | grep -v -E 'rails'` rails/"
+  run 'mv .* rails/'
+  run "npx create-react-app #{@app_name}"
+  run "mv #{@app_name} react"
+
+  # Caddy
+  template 'Caddyfile.tt', force: true
+
+  # Docker
+  template 'base.Dockerfile.tt', 'rails/base.Dockerfile'
+  template 'Dockerfile.dev', 'rails/Dockerfile'
+  copy_file 'docker-entrypoint.sh', 'rails/docker-entrypoint.sh'
+  copy_file 'Dockerfile.react.dev', 'react/Dockerfile'
+  copy_file 'react-run.sh', 'react/run.sh'
+  copy_file 'docker-compose.react.yml', 'docker-compose.yml'
+  copy_file 'env.example', '.env.example'
+  copy_file 'db/seeds.rb', 'rails/db/seeds.rb', force: true
+end
 
 # Add this template directory to source_paths so that Thor actions like
 # copy_file and template resolve against our source files. If this file was
@@ -109,7 +148,6 @@ end
 def assert_valid_options
   valid_options = {
     skip_gemfile: false,
-    skip_bundle: false,
     skip_git: false,
     skip_test_unit: false,
     edge: false
@@ -196,8 +234,34 @@ def create_initial_migration
   run_with_clean_bundler_env 'bin/rake db:migrate'
 end
 
+def install_devise
+  run_with_clean_bundler_env 'bin/rails generate devise:install'
+  run_with_clean_bundler_env 'bin/rails generate devise User'
+  rails_command 'db:migrate'
+  unless api_only?
+    run_with_clean_bundler_env 'bin/rails generate devise:views'
+    run 'erb2slim ./app/views/devise -d'
+  end
+  apply 'config/initializers/devise.rb'
+end
+
+def cancancan
+  @cancancan ||=
+    yes?('Add CanCanCan to the Gemfile ? (default: no)')
+end
+
+def install_cancancan
+  run_with_clean_bundler_env 'bin/rails generate cancan:ability'
+end
+
+def react
+  @react ||=
+    yes?('Use React ? (default: no)')
+end
+
 def api_only?
   !!options['api']
 end
 
 apply_template!
+apply_react! if react
