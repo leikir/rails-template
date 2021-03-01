@@ -29,6 +29,8 @@ gem 'cancancan'
 <% end -%>
 # email validation
 gem 'email_address'
+# webpack
+gem "webpacker", '~> 5.2.1'
 
 group :development, :test do
   gem 'awesome_print'

@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'shellwords'
 
-RAILS_REQUIREMENT = '~> 6.0.0'.freeze
+RAILS_REQUIREMENT = '~> 6.1.0'.freeze
 
 def apply_template!
   react if api_only?
@@ -10,6 +10,12 @@ def apply_template!
   assert_valid_options
   assert_postgresql
   add_template_repository_to_source_path
+
+  # We're going to handle bundler and webpacker ourselves.
+  # Setting these options will prevent Rails from running them unnecessarily.
+  self.options = options.merge(
+    skip_webpack_install: true
+  )
 
   template 'Gemfile.tt', force: true
 
@@ -52,15 +58,15 @@ def apply_template!
   git :init unless preexisting_git_repo?
   empty_directory '.git/safe'
 
+  run_with_clean_bundler_env "bundle update"
+  install_webpacker
   run_with_clean_bundler_env 'bin/setup'
   create_initial_migration
+  run_with_clean_bundler_env "bundle exec spring binstub --all"
   install_devise
   install_cancancan if @cancancan
-  generate_spring_binstubs
 
-  binstubs = %w[
-    annotate brakeman bundler bundler-audit rubocop
-  ]
+  binstubs = %w[ annotate brakeman bundler bundler-audit rubocop ]
   run_with_clean_bundler_env "bundle binstubs #{binstubs.join(' ')} --force"
 
   template 'rubocop.yml.tt', '.rubocop.yml'
@@ -229,7 +235,6 @@ end
 
 def create_initial_migration
   return if Dir['db/migrate/**/*.rb'].any?
-
   run_with_clean_bundler_env 'bin/rails generate migration initial_migration'
   run_with_clean_bundler_env 'bin/rake db:migrate'
 end
@@ -252,6 +257,10 @@ end
 
 def install_cancancan
   run_with_clean_bundler_env 'bin/rails generate cancan:ability'
+end
+
+def install_webpacker
+  run_with_clean_bundler_env "bin/rails webpacker:install"
 end
 
 def react
