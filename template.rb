@@ -65,6 +65,7 @@ def apply_template!
   run_with_clean_bundler_env "bundle exec spring binstub --all"
   install_devise
   install_cancancan if @cancancan
+  install_active_admin if @active_admin
 
   binstubs = %w[ annotate brakeman bundler bundler-audit rubocop ]
   run_with_clean_bundler_env "bundle binstubs #{binstubs.join(' ')} --force"
@@ -234,6 +235,10 @@ def run_rubocop_autocorrections
   run_with_clean_bundler_env 'bin/rubocop -a --fail-level A > /dev/null || true'
 end
 
+def install_active_admin
+  run_with_clean_bundler_env 'bin/rails generate active_admin:install'
+end
+
 def install_devise
   run_with_clean_bundler_env 'bin/rails generate devise:install'
   run_with_clean_bundler_env 'bin/rails generate devise User'
@@ -248,6 +253,10 @@ end
 def cancancan
   @cancancan ||=
     yes?('Add CanCanCan to the Gemfile ? (default: no)')
+end
+
+def active_admin
+    @active_admin ||= yes?('Add ActiveAdmin to the Gemfile ? (default: no)') unless api_only?
 end
 
 def install_cancancan

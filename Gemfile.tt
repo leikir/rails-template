@@ -31,7 +31,10 @@ gem 'cancancan'
 gem 'email_address'
 # webpack
 gem "webpacker", '~> 5.2.1'
-
+<% if active_admin -%>
+# active_admin
+gem 'activeadmin'
+<% end -%>
 group :development, :test do
   gem 'awesome_print'
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
