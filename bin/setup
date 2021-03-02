@@ -5,7 +5,7 @@ def setup!
     test "ruby -v" => ruby_version
     run  "gem install bundler #{bundler_ver_arg} --no-document --conservative"
     run  "bundle check || bundle install"
-    run  "bin/yarn install" if File.exist?("yarn.lock")
+    run  "bin/yarn install" if File.exist?("yarn.lock") && File.exist?("bin.yarn")
     copy "config/database.example.yml"
     run  "bin/rake tmp:create"
     run  "bin/rake db:create:all"
