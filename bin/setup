@@ -8,8 +8,8 @@ def setup!
     run  "bin/yarn install" if File.exist?("yarn.lock")
     copy "config/database.example.yml"
     run  "bin/rake tmp:create"
-    # run  "bin/rake db:create:all"
-    # run  "bin/rake db:migrate"
+    run  "bin/rake db:create:all"
+    run  "bin/rake db:migrate"
     run  "bin/rake db:prepare"
     run  "bin/rake db:test:prepare"
     run  "bin/webpack --display errors-only"

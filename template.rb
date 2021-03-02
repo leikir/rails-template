@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'shellwords'
+require "json"
 
 RAILS_REQUIREMENT = '~> 6.1.0'.freeze
 
@@ -61,7 +62,6 @@ def apply_template!
   run_with_clean_bundler_env "bundle update"
   install_webpacker
   run_with_clean_bundler_env 'bin/setup'
-  create_initial_migration
   run_with_clean_bundler_env "bundle exec spring binstub --all"
   install_devise
   install_cancancan if @cancancan
@@ -71,6 +71,7 @@ def apply_template!
 
   template 'rubocop.yml.tt', '.rubocop.yml'
   run_rubocop_autocorrections
+
 
   unless react
     # Caddy
@@ -231,12 +232,6 @@ end
 
 def run_rubocop_autocorrections
   run_with_clean_bundler_env 'bin/rubocop -a --fail-level A > /dev/null || true'
-end
-
-def create_initial_migration
-  return if Dir['db/migrate/**/*.rb'].any?
-  run_with_clean_bundler_env 'bin/rails generate migration initial_migration'
-  run_with_clean_bundler_env 'bin/rake db:migrate'
 end
 
 def install_devise
