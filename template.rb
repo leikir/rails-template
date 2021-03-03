@@ -67,14 +67,15 @@ def apply_template!
   install_crono if @crono
   run_with_clean_bundler_env "bundle update"
   install_webpacker
-
+  
+  
   binstubs = %w[ annotate brakeman bundler bundler-audit rubocop ]
   run_with_clean_bundler_env "bundle binstubs #{binstubs.join(' ')} --force"
-
+  
   template 'rubocop.yml.tt', '.rubocop.yml'
   run_rubocop_autocorrections
-
-
+  
+  
   unless react
     # Caddy
     template 'Caddyfile.tt', force: true
@@ -105,6 +106,7 @@ def apply_react!
   run 'mv .* rails/ || :'
   run "npx create-react-app #{@app_name}"
   run "mv #{@app_name} react"
+  run "sed -i.bak 's/\"start\": \"react-scripts start\",/\"start\": \"PORT=8080 react-scripts start\",/g' react/package.json"
 
   # Caddy
   template 'Caddyfile.tt', force: true
