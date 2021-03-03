@@ -12,7 +12,6 @@ def setup!
     run  "bin/rake db:migrate"
     run  "bin/rake db:prepare"
     run  "bin/rake db:test:prepare"
-    run  "bin/webpack --display errors-only"
   end
 end
 

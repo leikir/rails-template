@@ -59,13 +59,14 @@ def apply_template!
   git :init unless preexisting_git_repo?
   empty_directory '.git/safe'
 
-  run_with_clean_bundler_env "bundle update"
-  install_webpacker
   run_with_clean_bundler_env 'bin/setup'
   run_with_clean_bundler_env "bundle exec spring binstub --all"
   install_devise
   install_cancancan if @cancancan
   install_active_admin if @active_admin
+  install_crono if @crono
+  run_with_clean_bundler_env "bundle update"
+  install_webpacker
 
   binstubs = %w[ annotate brakeman bundler bundler-audit rubocop ]
   run_with_clean_bundler_env "bundle binstubs #{binstubs.join(' ')} --force"
@@ -235,10 +236,6 @@ def run_rubocop_autocorrections
   run_with_clean_bundler_env 'bin/rubocop -a --fail-level A > /dev/null || true'
 end
 
-def install_active_admin
-  run_with_clean_bundler_env 'bin/rails generate active_admin:install'
-end
-
 def install_devise
   run_with_clean_bundler_env 'bin/rails generate devise:install'
   run_with_clean_bundler_env 'bin/rails generate devise User'
@@ -256,7 +253,13 @@ def cancancan
 end
 
 def active_admin
-    @active_admin ||= yes?('Add ActiveAdmin to the Gemfile ? (default: no)') unless api_only?
+  @active_admin ||= 
+    yes?('Add ActiveAdmin to the Gemfile ? (default: no)') unless api_only?
+end
+
+def crono
+  @crono ||=
+    yes?('Add Crono to the Gemfile ? (default: no)')
 end
 
 def install_cancancan
@@ -265,6 +268,18 @@ end
 
 def install_webpacker
   run_with_clean_bundler_env "bin/rails webpacker:install"
+end
+
+def install_active_admin
+  run_with_clean_bundler_env 'bin/rails generate active_admin:install'
+end
+
+def install_crono
+  run_with_clean_bundler_env 'bin/rails generate crono:install'
+  new_header="class CreateCronoJobs < ActiveRecord::Migration[6.1]"
+  file_name = Dir.glob(File.join('db/migrate/', '*.*')).max { |a,b| File.ctime(a) <=> File.ctime(b) }
+  run "sed -i.bak \"1 s/^.*$/#{new_header}/\" #{file_name}"
+  rails_command 'db:migrate'
 end
 
 def react

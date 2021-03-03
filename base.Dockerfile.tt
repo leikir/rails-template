@@ -1,6 +1,7 @@
 FROM ruby:<%= RUBY_VERSION %>-slim
 
-MAINTAINER Leikir Web "web@leikir.io"
+LABEL key="Leikir Web web@leikir.io" 
+
 
 RUN apt-get update \
   && apt-get install -qq -y --no-install-recommends \

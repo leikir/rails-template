@@ -35,6 +35,10 @@ gem "webpacker", '~> 5.2.1'
 # active_admin
 gem 'activeadmin'
 <% end -%>
+<% if crono -%>
+# jobs crono
+gem 'crono'
+<% end -%>
 group :development, :test do
   gem 'awesome_print'
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
