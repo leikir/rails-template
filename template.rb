@@ -75,6 +75,8 @@ def apply_template!
   template 'rubocop.yml.tt', '.rubocop.yml'
   run_rubocop_autocorrections
   
+  tailwind unless api_only?
+  install_tailwind if @tailwind
   
   unless react
     # Caddy
@@ -264,8 +266,27 @@ def crono
     yes?('Add Crono to the Gemfile ? (default: no)')
 end
 
+def tailwind
+  @tailwind ||=
+    yes?('Add Tailwind to the Gemfile ? (default: no)')
+end
+
 def install_cancancan
   run_with_clean_bundler_env 'bin/rails generate cancan:ability'
+end
+
+def install_tailwind
+  run_with_clean_bundler_env 'yarn add tailwindcss@npm:@tailwindcss/postcss7-compat @rails/ujs'
+  run "mkdir -p app/javascript/stylesheets && touch app/javascript/stylesheets/application.scss"
+  run "echo '@import \"tailwindcss/base\";\n@import \"tailwindcss/components\";\n@import \"tailwindcss/utilities\";' >> 'app/javascript/stylesheets/application.scss'"
+  run "echo 'require(\"stylesheets/application.scss\")' >> 'app/javascript/packs/application.js'"
+  File.open('postcss.config.js', 'r+') do |file|
+    lines = file.each_line.to_a
+    lines[1] = "plugins: [\n\trequire('tailwindcss'),\n\trequire('autoprefixer'),\n"
+    file.rewind
+    file.write(lines.join)
+  end
+  run_with_clean_bundler_env 'yarn tailwind init'
 end
 
 def install_webpacker

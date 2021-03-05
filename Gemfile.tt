@@ -8,7 +8,7 @@ gem 'rails', "~> <%= Rails.version %>"
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 1.1.4'
 # Use Puma as the app server
-gem 'puma', '~> 4.1'
+gem 'puma', '~> 5.0'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 6.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -29,6 +29,8 @@ gem 'cancancan'
 <% end -%>
 # email validation
 gem 'email_address'
+# Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
+gem 'turbolinks', '~> 5'
 # webpack
 gem "webpacker", '~> 5.2.1'
 <% if active_admin -%>
