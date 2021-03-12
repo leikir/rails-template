@@ -25,6 +25,7 @@ def apply_template!
 
   copy_file 'editorconfig', '.editorconfig'
   copy_file 'gitignore', '.gitignore', force: true
+  copy_file 'dependabot.yml.tt', '.github/dependabot.yml', force: true
   template 'ruby-version.tt', '.ruby-version', force: true
   remove_file 'package.json'
 
@@ -276,7 +277,7 @@ def install_cancancan
 end
 
 def install_tailwind
-  run_with_clean_bundler_env 'yarn add tailwindcss@npm:@tailwindcss/postcss7-compat @rails/ujs'
+  run_with_clean_bundler_env 'yarn add tailwindcss@npm:@tailwindcss/postcss7-compat @tailwindcss/postcss7-compat postcss@^7 autoprefixer@^9 rails-ujs turbolinks'
   run "mkdir -p app/javascript/stylesheets && touch app/javascript/stylesheets/application.scss"
   run "echo '@import \"tailwindcss/base\";\n@import \"tailwindcss/components\";\n@import \"tailwindcss/utilities\";' >> 'app/javascript/stylesheets/application.scss'"
   run "echo 'require(\"stylesheets/application.scss\")' >> 'app/javascript/packs/application.js'"
