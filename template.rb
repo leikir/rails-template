@@ -67,7 +67,7 @@ def apply_template!
   install_active_admin if @active_admin
   install_crono if @crono
   run_with_clean_bundler_env "bundle update"
-  install_webpacker
+  install_webpacker unless api_only? 
   
   
   binstubs = %w[ annotate brakeman bundler bundler-audit rubocop ]
