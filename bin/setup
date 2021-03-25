@@ -8,6 +8,7 @@ def setup!
     run  "bin/yarn install" if File.exist?("yarn.lock") && File.exist?("bin.yarn")
     copy "config/database.example.yml"
     run  "bin/rake tmp:create"
+    run  "bin/rake db:create:all"
     run  "bin/rake db:prepare"
     run  "bin/rake db:test:prepare"
   end

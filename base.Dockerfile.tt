@@ -23,10 +23,8 @@ RUN gem install   rails:<%= Rails.version %> \
 									pg \
 									puma \
 									sass-rails \
-									uglifier \
 									slim-rails \
 									rack-cors \
-									coffee-rails \
 									sidekiq \
 									awesome_print \
 									byebug \
