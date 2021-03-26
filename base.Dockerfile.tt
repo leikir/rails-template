@@ -17,7 +17,8 @@ RUN apt-get update \
     imagemagick \
     libpq-dev \
     file \
-    git
+    git \
+		shared-mime-info
 
 RUN gem install   rails:<%= Rails.version %> \
 									pg \
