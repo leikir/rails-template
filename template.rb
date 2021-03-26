@@ -14,9 +14,9 @@ def apply_template!
 
   # We're going to handle bundler and webpacker ourselves.
   # Setting these options will prevent Rails from running them unnecessarily.
-  self.options = options.merge(
-    skip_webpack_install: true
-  )
+  # self.options = options.merge(
+  #   skip_webpack_install: true
+  # )
 
   template 'Gemfile.tt', force: true
 
@@ -55,6 +55,11 @@ def apply_template!
   copy_file 'docker-compose.yml'
   copy_file 'env.example', '.env.example'
 
+  # Api
+  if api_only?
+    copy_file 'app/controllers/api_controller.rb', 'app/controllers/api_controller.rb' 
+    copy_file 'app/controllers/users/registrations_controller.rb', 'app/controllers/users/registrations_controller.rb'
+  end
   # apply "variants/bootstrap/template.rb" if apply_bootstrap?
 
   git :init unless preexisting_git_repo?
@@ -250,6 +255,15 @@ def install_devise
     run 'erb2slim ./app/views/devise -d'
   end
   apply 'config/initializers/devise.rb'
+  if api_only?
+    gsub_file 'config/routes.rb', '  devise_for :users' do
+      "  devise_for :users,
+      controllers: {
+        registrations: 'users/registrations'
+      },
+      defaults: { format: :json }"
+    end
+  end
 end
 
 def cancancan
@@ -270,6 +284,11 @@ end
 def tailwind
   @tailwind ||=
     yes?('Add Tailwind to the Gemfile ? (default: no)')
+end
+
+def webpacker
+  @webpacker ||=
+    yes?('Add Webpacker to the Gemfile ? (default: no)')
 end
 
 def install_cancancan
