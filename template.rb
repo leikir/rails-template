@@ -1,7 +1,8 @@
 require 'fileutils'
 require 'shellwords'
+require "json"
 
-RAILS_REQUIREMENT = '~> 6.0.0'.freeze
+RAILS_REQUIREMENT = '~> 6.1.0'.freeze
 
 def apply_template!
   react if api_only?
@@ -11,6 +12,12 @@ def apply_template!
   assert_postgresql
   add_template_repository_to_source_path
 
+  # We're going to handle bundler and webpacker ourselves.
+  # Setting these options will prevent Rails from running them unnecessarily.
+  # self.options = options.merge(
+  #   skip_webpack_install: true
+  # )
+
   template 'Gemfile.tt', force: true
 
   template 'README.md.tt', force: true
@@ -18,6 +25,7 @@ def apply_template!
 
   copy_file 'editorconfig', '.editorconfig'
   copy_file 'gitignore', '.gitignore', force: true
+  copy_file 'dependabot.yml.tt', '.github/dependabot.yml', force: true
   template 'ruby-version.tt', '.ruby-version', force: true
   remove_file 'package.json'
 
@@ -47,25 +55,35 @@ def apply_template!
   copy_file 'docker-compose.yml'
   copy_file 'env.example', '.env.example'
 
+  # Api
+  if api_only?
+    copy_file 'app/controllers/api_controller.rb', 'app/controllers/api_controller.rb' 
+    copy_file 'app/controllers/users/registrations_controller.rb', 'app/controllers/users/registrations_controller.rb'
+  end
   # apply "variants/bootstrap/template.rb" if apply_bootstrap?
 
   git :init unless preexisting_git_repo?
   empty_directory '.git/safe'
 
   run_with_clean_bundler_env 'bin/setup'
-  create_initial_migration
+  run_with_clean_bundler_env "bundle exec spring binstub --all"
   install_devise
   install_cancancan if @cancancan
-  generate_spring_binstubs
-
-  binstubs = %w[
-    annotate brakeman bundler bundler-audit rubocop
-  ]
+  install_active_admin if @active_admin
+  install_crono if @crono
+  run_with_clean_bundler_env "bundle update"
+  install_webpacker unless api_only? 
+  
+  
+  binstubs = %w[ annotate brakeman bundler bundler-audit rubocop ]
   run_with_clean_bundler_env "bundle binstubs #{binstubs.join(' ')} --force"
-
+  
   template 'rubocop.yml.tt', '.rubocop.yml'
   run_rubocop_autocorrections
-
+  
+  tailwind unless api_only?
+  install_tailwind if @tailwind
+  
   unless react
     # Caddy
     template 'Caddyfile.tt', force: true
@@ -96,6 +114,7 @@ def apply_react!
   run 'mv .* rails/ || :'
   run "npx create-react-app #{@app_name}"
   run "mv #{@app_name} react"
+  run "sed -i.bak 's/\"start\": \"react-scripts start\",/\"start\": \"PORT=8080 react-scripts start\",/g' react/package.json"
 
   # Caddy
   template 'Caddyfile.tt', force: true
@@ -227,13 +246,6 @@ def run_rubocop_autocorrections
   run_with_clean_bundler_env 'bin/rubocop -a --fail-level A > /dev/null || true'
 end
 
-def create_initial_migration
-  return if Dir['db/migrate/**/*.rb'].any?
-
-  run_with_clean_bundler_env 'bin/rails generate migration initial_migration'
-  run_with_clean_bundler_env 'bin/rake db:migrate'
-end
-
 def install_devise
   run_with_clean_bundler_env 'bin/rails generate devise:install'
   run_with_clean_bundler_env 'bin/rails generate devise User'
@@ -243,6 +255,15 @@ def install_devise
     run 'erb2slim ./app/views/devise -d'
   end
   apply 'config/initializers/devise.rb'
+  if api_only?
+    gsub_file 'config/routes.rb', '  devise_for :users' do
+      "  devise_for :users,
+      controllers: {
+        registrations: 'users/registrations'
+      },
+      defaults: { format: :json }"
+    end
+  end
 end
 
 def cancancan
@@ -250,8 +271,58 @@ def cancancan
     yes?('Add CanCanCan to the Gemfile ? (default: no)')
 end
 
+def active_admin
+  @active_admin ||= 
+    yes?('Add ActiveAdmin to the Gemfile ? (default: no)') unless api_only?
+end
+
+def crono
+  @crono ||=
+    yes?('Add Crono to the Gemfile ? (default: no)')
+end
+
+def tailwind
+  @tailwind ||=
+    yes?('Add Tailwind to the Gemfile ? (default: no)')
+end
+
+def webpacker
+  @webpacker ||=
+    yes?('Add Webpacker to the Gemfile ? (default: no)')
+end
+
 def install_cancancan
   run_with_clean_bundler_env 'bin/rails generate cancan:ability'
+end
+
+def install_tailwind
+  run_with_clean_bundler_env 'yarn add tailwindcss@npm:@tailwindcss/postcss7-compat @tailwindcss/postcss7-compat postcss@^7 autoprefixer@^9 rails-ujs turbolinks'
+  run "mkdir -p app/javascript/stylesheets && touch app/javascript/stylesheets/application.scss"
+  run "echo '@import \"tailwindcss/base\";\n@import \"tailwindcss/components\";\n@import \"tailwindcss/utilities\";' >> 'app/javascript/stylesheets/application.scss'"
+  run "echo 'require(\"stylesheets/application.scss\")' >> 'app/javascript/packs/application.js'"
+  File.open('postcss.config.js', 'r+') do |file|
+    lines = file.each_line.to_a
+    lines[1] = "plugins: [\n\trequire('tailwindcss'),\n\trequire('autoprefixer'),\n"
+    file.rewind
+    file.write(lines.join)
+  end
+  run_with_clean_bundler_env 'yarn tailwind init'
+end
+
+def install_webpacker
+  run_with_clean_bundler_env "bin/rails webpacker:install"
+end
+
+def install_active_admin
+  run_with_clean_bundler_env 'bin/rails generate active_admin:install'
+end
+
+def install_crono
+  run_with_clean_bundler_env 'bin/rails generate crono:install'
+  new_header="class CreateCronoJobs < ActiveRecord::Migration[6.1]"
+  file_name = Dir.glob(File.join('db/migrate/', '*.*')).max { |a,b| File.ctime(a) <=> File.ctime(b) }
+  run "sed -i.bak \"1 s/^.*$/#{new_header}/\" #{file_name}"
+  rails_command 'db:migrate'
 end
 
 def react

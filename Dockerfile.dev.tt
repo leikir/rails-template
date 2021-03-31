@@ -1,6 +1,7 @@
 FROM <%= app_name %>base
 
-MAINTAINER Leikir Web "web@leikir.io"
+LABEL key="Leikir Web web@leikir.io" 
+
 
 ENV INSTALL_PATH /app
 
