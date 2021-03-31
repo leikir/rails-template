@@ -3,13 +3,14 @@
 def setup!
   within_project_root do
     test "ruby -v" => ruby_version
-    run  "gem install bundler --no-document --conservative"
-    run  "bundle install"
-    run  "bin/yarn install" if File.exist?("yarn.lock")
+    run  "gem install bundler #{bundler_ver_arg} --no-document --conservative"
+    run  "bundle check || bundle install"
+    run  "bin/yarn install" if File.exist?("yarn.lock") && File.exist?("bin.yarn")
     copy "config/database.example.yml"
     run  "bin/rake tmp:create"
     run  "bin/rake db:create:all"
-    run  "bin/rake db:migrate"
+    run  "bin/rake db:prepare"
+    run  "bin/rake db:test:prepare"
   end
 end
 
@@ -75,6 +76,13 @@ def log(color, message, out=$stdout, &block)
   else
     out.puts(message)
   end
+end
+
+def bundler_ver_arg
+  lock_file = File.expand_path("../Gemfile.lock", __dir__)
+  lock = File.exist?(lock_file) ? IO.read(lock_file) : ""
+  version = lock[/BUNDLED WITH\n   (\S+)$/, 1]
+  version ? "-v #{version}" : nil
 end
 
 def die(message)

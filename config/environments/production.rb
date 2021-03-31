@@ -18,9 +18,12 @@ insert_into_file "config/environments/production.rb",
   <<-RUBY
 
   # Production email config
-  config.action_mailer.delivery_method = :postmark
-  config.action_mailer.postmark_settings = {
-    api_token: ENV.fetch("POSTMARK_API_KEY")
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: ENV['SMTP_HOSTNAME'],
+    port: ENV['SMTP_PORT'],
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD']
   }
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.default_url_options = {
